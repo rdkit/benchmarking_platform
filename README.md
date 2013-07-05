@@ -1,6 +1,9 @@
 Benchmarking Platform
 =====================
-presented in S. Riniker, G. Landrum, J. Cheminf., 5, 26 (2013).
+presented in 
+S. Riniker, G. Landrum, J. Cheminf., 5, 26 (2013),
+DOI: 10.1186/1758-2946-5-26.
+URL: http://www.jcheminf.com/content/5/1/26
 
 GENERAL USAGE NOTES
 -------------------
