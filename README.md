@@ -8,7 +8,7 @@ The virtual-screening process implemented by the benchmarking
 platform is divided into three steps:
 1) Scoring
 2) Validation
-3) Analysis
+3) Analysis.
 The three steps are run separately and read in the output of the
 previous step. In the scoring step, the data from the directories
 compounds and query_lists is read in.
