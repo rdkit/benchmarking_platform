@@ -14,9 +14,13 @@ GENERAL USAGE NOTES
 -------------------
 The virtual-screening process implemented by the benchmarking
 platform is divided into three steps:
+
 1) Scoring
+
 2) Validation
-3) Analysis.
+
+3) Analysis
+
 The three steps are run separately and read in the output of the
 previous step. In the scoring step, the data from the directories
 compounds and query_lists is read in.
@@ -27,11 +31,14 @@ lists contain the external ID, the internal ID and the SMILES of
 each compound.
 
 There are three subsets of targets available:
+
 subset I: 
   88 targets from MUV, DUD & ChEMBL described in J. Cheminf., 5, 26 (2013)
+  
 subset I filtered: 
   69 targets from MUV, DUD & ChEMBL filtered for difficulty
   described in JCIM (2013), online
+  
 subset II:
   37 targets from ChEMBL designed for a second VS use case
   described in JCIM (2013), online
