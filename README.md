@@ -1,13 +1,13 @@
 Benchmarking Platform
 =====================
 original version presented in 
-S. Riniker, G. Landrum, J. Cheminf., 5, 26 (2013)
-DOI: 10.1186/1758-2946-5-26
+S. Riniker, G. Landrum, J. Cheminf., 5, 26 (2013),
+DOI: 10.1186/1758-2946-5-26,
 URL: http://www.jcheminf.com/content/5/1/26
 
 extended version presented in
-S. Riniker, N. Fechner, G. Landrum, J. Chem. Inf. Model., 53, 2829, (2013)
-DOI: 10.1021/ci400466r
+S. Riniker, N. Fechner, G. Landrum, J. Chem. Inf. Model., 53, 2829, (2013),
+DOI: 10.1021/ci400466r,
 URL: http://pubs.acs.org/doi/abs/10.1021/ci400466r
 
 GENERAL USAGE NOTES
