@@ -9,8 +9,8 @@
 # optional:
 # -o [] : relative output path (default: pwd)
 # -a : append to the output file (default: overwrite)
-# -s [] : similarity metric (default: Dice, 
-#         other options: Tanimoto, Cosine, Russel, Kulczynski, 
+# -s [] : similarity metric (default: Dice,
+#         other options: Tanimoto, Cosine, Russel, Kulczynski,
 #         McConnaughey, Manhattan, RogotGoldberg)
 # -r [] : file containing the random forest info
 #          default parameters: criterion=gini, max_depth=10,
@@ -24,19 +24,19 @@
 #
 #  Copyright (c) 2013, Novartis Institutes for BioMedical Research Inc.
 #  All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
-# met: 
+# met:
 #
-#     * Redistributions of source code must retain the above copyright 
+#     * Redistributions of source code must retain the above copyright
 #       notice, this list of conditions and the following disclaimer.
 #     * Redistributions in binary form must reproduce the above
-#       copyright notice, this list of conditions and the following 
-#       disclaimer in the documentation and/or other materials provided 
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
 #       with the distribution.
-#     * Neither the name of Novartis Institutes for BioMedical Research Inc. 
-#       nor the names of its contributors may be used to endorse or promote 
+#     * Neither the name of Novartis Institutes for BioMedical Research Inc.
+#       nor the names of its contributors may be used to endorse or promote
 #       products derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -55,7 +55,7 @@
 from rdkit import Chem, DataStructs
 import cPickle, gzip, sys, os, os.path, numpy
 from collections import defaultdict
-from optparse import OptionParser 
+from optparse import OptionParser
 from sklearn.ensemble import RandomForestClassifier, forest
 from sklearn.tree import tree
 from rdkit.ML.Data import DataUtils
@@ -92,7 +92,7 @@ read_dict['min_samples_split'] = lambda x: int(x)
 read_dict['min_samples_leaf'] = lambda x: int(x)
 read_dict['n_jobs'] = lambda x: int(x)
 
-forest._parallel_build_trees = ml_func._balanced_parallel_build_trees
+#forest._parallel_build_trees = ml_func._balanced_parallel_build_trees
 
 # prepare command-line option parser
 usage = "usage: %prog [options] arg"
@@ -110,7 +110,7 @@ if __name__=='__main__':
     # read in command line options
     (options, args) = parser.parse_args()
     # required arguments
-    if options.num and options.fp: 
+    if options.num and options.fp:
         num_query_mols = options.num
         fp_build = options.fp
     else:
@@ -133,7 +133,7 @@ if __name__=='__main__':
     scor.checkQueryMols(num_query_mols, conf.list_num_query_mols)
 
     # default machine-learning method variables
-    ml_dict = dict(criterion='gini', max_features='auto', n_jobs=1, max_depth=10, min_samples_split=2, min_samples_leaf=1, num_estimators=100)
+    ml_dict = dict(criterion='gini', max_features='auto', n_jobs=4, max_depth=10, min_samples_split=2, min_samples_leaf=1, num_estimators=100)
     if options.ml:
         ml_dict = ml_func.readMLFile(ml_dict, read_dict, path+options.ml)
 
@@ -150,7 +150,7 @@ if __name__=='__main__':
             # read in actives and calculate fps
             actives = []
             for line in gzip.open(inpath_cmp+dataset+'/cmp_list_'+dataset+'_'+str(target)+'_actives.dat.gz', 'r'):
-                if line[0] != '#': 
+                if line[0] != '#':
                     # structure of line: [external ID, internal ID, SMILES]]
                     line = line.rstrip().split()
                     fp_dict = scor.getFP(fp_build, line[2])
@@ -166,7 +166,7 @@ if __name__=='__main__':
                 if firstchembl:
                     decoys = []
                     for line in gzip.open(inpath_cmp+dataset+'/cmp_list_'+dataset+'_zinc_decoys.dat.gz', 'r'):
-                        if line[0] != '#': 
+                        if line[0] != '#':
                             # structure of line: [external ID, internal ID, SMILES]]
                             line = line.rstrip().split()
                             fp_dict = scor.getFP(fp_build, line[2])
@@ -178,7 +178,7 @@ if __name__=='__main__':
             else:
                 decoys = []
                 for line in gzip.open(inpath_cmp+dataset+'/cmp_list_'+dataset+'_'+str(target)+'_decoys.dat.gz', 'r'):
-                    if line[0] != '#': 
+                    if line[0] != '#':
                         # structure of line: [external ID, internal ID, SMILES]]
                         line = line.rstrip().split()
                         fp_dict = scor.getFP(fp_build, line[2])

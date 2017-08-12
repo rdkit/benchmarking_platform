@@ -12,7 +12,7 @@ from rdkit.Chem.ChemicalFeatures import BuildFeatureFactory
 from rdkit.Chem import rdMolDescriptors
 
 # implemented fingerprints:
-# ECFC0 (ecfc0), ECFP0 (ecfp0), MACCS (maccs), 
+# ECFC0 (ecfc0), ECFP0 (ecfp0), MACCS (maccs),
 # atom pairs (ap), atom pairs bit vector (apbv), topological torsions (tt)
 # hashed atom pairs (hashap), hashed topological torsions (hashtt) --> with 1024 bits
 # ECFP4 (ecfp4), ECFP6 (ecfp6), ECFC4 (ecfc4), ECFC6 (ecfc6) --> with 1024 bits
@@ -23,7 +23,7 @@ from rdkit.Chem import rdMolDescriptors
 # RDKit with path length = 5 (rdk5), with path length = 6 (rdk6), with path length = 7 (rdk7)
 # 2D pharmacophore (pharm) ?????????????
 
-nbits = 1024
+nbits = 2048
 longbits = 16384
 
 # dictionary

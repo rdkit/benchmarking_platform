@@ -7,7 +7,7 @@
 #
 # INPUT
 # required:
-# -m [] : file containing the methods 
+# -m [] : file containing the methods
 #         implemented methods are: AUC, BEDROC ([alpha] optional),
 #         RIE ([alpha] optional), EF ([percentage] optional)
 # optional:
@@ -23,19 +23,19 @@
 #
 #  Copyright (c) 2013, Novartis Institutes for BioMedical Research Inc.
 #  All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
-# met: 
+# met:
 #
-#     * Redistributions of source code must retain the above copyright 
+#     * Redistributions of source code must retain the above copyright
 #       notice, this list of conditions and the following disclaimer.
 #     * Redistributions in binary form must reproduce the above
-#       copyright notice, this list of conditions and the following 
-#       disclaimer in the documentation and/or other materials provided 
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
 #       with the distribution.
-#     * Neither the name of Novartis Institutes for BioMedical Research Inc. 
-#       nor the names of its contributors may be used to endorse or promote 
+#     * Neither the name of Novartis Institutes for BioMedical Research Inc.
+#       nor the names of its contributors may be used to endorse or promote
 #       products derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -94,11 +94,11 @@ if __name__=='__main__':
 
     # optional arguments
     inpath = parentpath+'scoring/'
-    if options.inpath: 
+    if options.inpath:
         inpath = [path+i for i in options.inpath]
         vfunc.checkPaths(inpath)
     outpath = path
-    if options.outpath: 
+    if options.outpath:
         outpath = path+options.outpath
         vfunc.checkPaths([outpath])
     remove_fps = []
@@ -125,7 +125,7 @@ if __name__=='__main__':
             # load scored lists
             scores = {}
             for inp in inpath: # loop over input paths
-                myfile = gzip.open(inp+'/list_'+dataset+'_'+str(target)+'_.pkl.gz', 'r')
+                myfile = gzip.open(inp+'/list_'+dataset+'_'+str(target)+'.pkl.gz', 'r')
                 while 1:
                     try:
                         tmp = cPickle.load(myfile)
@@ -150,7 +150,7 @@ if __name__=='__main__':
             # loop of repetitions
             for q in range(conf.num_reps):
                 # loop over evaluation methods
-                for m in method_dict.keys(): 
+                for m in method_dict.keys():
                     method_dict[m].runMethod(results, scores, q, -1)
 
             print "validation methods calculated"
