@@ -11,6 +11,43 @@ from rdkit.Chem.Fingerprints import FingerprintMols
 from rdkit.Chem.ChemicalFeatures import BuildFeatureFactory
 from rdkit.Chem import rdMolDescriptors
 
+import pickle
+from rdkit.Chem import BRICS
+
+fragmentList = pickle.load(open('/home/glandrum/Projects/reversible_fingerprints/data/frags.min2.ordered.pkl','rb'))
+from collections import  Counter,defaultdict
+def generateFragmentFingerprint(mol,nBits=4096,fragmentList=fragmentList):
+    frags = BRICS.BRICSDecompose(mol,minFragmentSize=2)
+    res = Counter()
+    for frag in frags:
+        try:
+            idx = fragmentList.index(frag)
+        except ValueError:
+            continue
+        res[idx%nBits] += 1
+    return res
+def FoldedRDKFingerprintCountBased(mol,fpSize=1024,**kwargs):
+    bitInfo = {}
+    unfolded = Chem.UnfoldedRDKFingerprintCountBased(mol,branchedPaths=False,minPath=3,maxPath=3,bitInfo=bitInfo,
+                                                     **kwargs)
+    res = {}
+    newBitInfo = defaultdict(list)
+    for k,b in unfolded.GetNonzeroElements().items():
+        res[k%fpSize] = b
+        newBitInfo[k%fpSize].extend(bitInfo[k])
+    return res,newBitInfo
+
+from rdkit import DataStructs
+def GetReversibleFingerprint(mol,nFragmentBits=4096,nRDKitBits=1024):
+    res = DataStructs.UIntSparseIntVect(nFragmentBits+nRDKitBits)
+    fragfp = generateFragmentFingerprint(mol,nBits=nFragmentBits)
+    rdkfp,_ = FoldedRDKFingerprintCountBased(mol,fpSize=nRDKitBits)
+    for bit,count in fragfp.items():
+        res[bit] = count
+    for bit,count in rdkfp.items():
+        res[bit+nFragmentBits] = count
+    return res
+
 # implemented fingerprints:
 # ECFC0 (ecfc0), ECFP0 (ecfp0), MACCS (maccs),
 # atom pairs (ap), atom pairs bit vector (apbv), topological torsions (tt)
@@ -28,6 +65,7 @@ longbits = 16384
 
 # dictionary
 fpdict = {}
+fpdict['reversible'] = GetReversibleFingerprint
 fpdict['ecfp0'] = lambda m: AllChem.GetMorganFingerprintAsBitVect(m, 0, nBits=nbits)
 fpdict['ecfp2'] = lambda m: AllChem.GetMorganFingerprintAsBitVect(m, 1, nBits=nbits)
 fpdict['ecfp4'] = lambda m: AllChem.GetMorganFingerprintAsBitVect(m, 2, nBits=nbits)
