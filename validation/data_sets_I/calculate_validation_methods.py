@@ -51,7 +51,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import gzip, cPickle, math, sys, os, os.path
+import gzip, pickle, math, sys, os, os.path
 from collections import defaultdict
 from optparse import OptionParser
 from rdkit.ML.Scoring import Scoring
@@ -113,22 +113,22 @@ if __name__=='__main__':
 
     # loop over data-set sources
     for dataset in conf.set_data.keys():
-        print dataset
+        print( dataset)
         # output directory
         outdir = outpath+'/'+dataset
         if not os.path.exists(outdir): os.makedirs(outdir)
 
         # loop over targets
         for target in conf.set_data[dataset]['ids']:
-            print target
+            print( target)
 
             # load scored lists
             scores = {}
             for inp in inpath: # loop over input paths
-                myfile = gzip.open(inp+'/list_'+dataset+'_'+str(target)+'.pkl.gz', 'r')
+                myfile = gzip.open(inp+'/list_'+dataset+'_'+str(target)+'.pkl.gz', 'rb')
                 while 1:
                     try:
-                        tmp = cPickle.load(myfile)
+                        tmp = pickle.load(myfile)
                     except (EOFError):
                         break
                     else:
@@ -137,7 +137,7 @@ if __name__=='__main__':
                             tmp[0] = vfunc.getName(tmp[0], scores.keys())
                             # input line: [fp_name, list of scored lists]
                             scores[tmp[0]] = tmp[1]
-            print "scored lists read in"
+            print( "scored lists read in")
             if printfp:
                 vfunc.printFPs(scores.keys())
                 printfp = False
@@ -153,11 +153,11 @@ if __name__=='__main__':
                 for m in method_dict.keys():
                     method_dict[m].runMethod(results, scores, q, -1)
 
-            print "validation methods calculated"
+            print( "validation methods calculated")
 
             # write results
             outf = gzip.open(outdir+'/validation_'+str(target)+'.pkl.gz', 'wb+')
-            cPickle.dump(results, outf, 2)
+            pickle.dump(results, outf, 2)
             outf.close()
 
-            print "results written out"
+            print( "results written out")

@@ -17,19 +17,19 @@
 #
 #  Copyright (c) 2013, Novartis Institutes for BioMedical Research Inc.
 #  All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
-# met: 
+# met:
 #
-#     * Redistributions of source code must retain the above copyright 
+#     * Redistributions of source code must retain the above copyright
 #       notice, this list of conditions and the following disclaimer.
 #     * Redistributions in binary form must reproduce the above
-#       copyright notice, this list of conditions and the following 
-#       disclaimer in the documentation and/or other materials provided 
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
 #       with the distribution.
-#     * Neither the name of Novartis Institutes for BioMedical Research Inc. 
-#       nor the names of its contributors may be used to endorse or promote 
+#     * Neither the name of Novartis Institutes for BioMedical Research Inc.
+#       nor the names of its contributors may be used to endorse or promote
 #       products derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -45,7 +45,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import gzip, cPickle, math, sys, os, os.path
+import gzip, pickle, math, sys, os, os.path
 import numpy as np
 from scipy import special, stats
 from collections import defaultdict
@@ -99,11 +99,11 @@ if __name__=='__main__':
 
     # loop over targets
     for target in conf.set_data:
-        print target
+        print( target)
 
         # load results
-        validation = cPickle.load(gzip.open(inpath+'/validation_'+str(target)+'.pkl.gz', 'r'))
-        methodkeys = validation.keys()
+        validation = pickle.load(gzip.open(inpath+'/validation_'+str(target)+'.pkl.gz', 'rb'))
+        methodkeys = list(validation.keys())
         fpkeys = validation[methodkeys[0]].keys()
 
         # if ranks is not yet set: prepare it

@@ -52,7 +52,7 @@
 #
 
 from rdkit import Chem, DataStructs
-import cPickle, gzip, sys, os, os.path, numpy
+import pickle, gzip, sys, os, os.path, numpy
 from collections import defaultdict
 from optparse import OptionParser
 from sklearn.ensemble import RandomForestClassifier, forest
@@ -129,7 +129,7 @@ if __name__=='__main__':
     scor.checkSimil(simil_metric)
 
     # default machine-learning method variables
-    ml_dict = dict(criterion='gini', max_features='auto', n_jobs=1, max_depth=10, min_samples_split=2, min_samples_leaf=1, num_estimators=100)
+    ml_dict = dict(criterion='gini', max_features='auto', n_jobs=4, max_depth=10, min_samples_split=2, min_samples_leaf=1, num_estimators=100)
     if options.ml:
         ml_dict = ml_func.readMLFile(ml_dict, read_dict, path+options.ml)
 
@@ -138,10 +138,10 @@ if __name__=='__main__':
 
     # loop over targets
     for target in conf.set_data:
-        print target
+        print( target)
 
         # read in training actives and calculate fps
-        actives = cPickle.load(open(inpath_cmp+'ChEMBL_II/Target_no_'+str(target)+'.pkl', 'r'))
+        actives = pickle.load(open(inpath_cmp+'ChEMBL_II/Target_no_'+str(target)+'.pkl', 'rb'))
         for k in actives.keys():
             for i,m in enumerate(actives[k]):
                 fp_dict = scor.getFP(fp_build, m[1])
@@ -150,6 +150,7 @@ if __name__=='__main__':
         # read in test actives and calculate fps
         div_actives = []
         for line in gzip.open(inpath_cmp+'ChEMBL/cmp_list_ChEMBL_'+str(target)+'_actives.dat.gz', 'r'):
+            line=line.decode('UTF-8')
             if line[0] != '#':
                 # structure of line: [external ID, internal ID, SMILES]]
                 line = line.rstrip().split()
@@ -164,6 +165,7 @@ if __name__=='__main__':
         if firstchembl:
             decoys = []
             for line in gzip.open(inpath_cmp+'ChEMBL/cmp_list_ChEMBL_zinc_decoys.dat.gz', 'r'):
+                line=line.decode('UTF-8')
                 if line[0] != '#':
                     # structure of line: [external ID, internal ID, SMILES]]
                     line = line.rstrip().split()
@@ -174,20 +176,20 @@ if __name__=='__main__':
             np_fps_dcy = ml_func.getNumpy(decoys)
             firstchembl = False
             num_decoys = len(decoys)
-        print "molecules read in and fingerprints calculated"
+        print( "molecules read in and fingerprints calculated")
 
         # open training and test lists
-        training_input = open(inpath_list+'/training_'+str(target)+'.pkl', 'r')
-        test_input = open(inpath_list+'/test_'+str(target)+'.pkl', 'r')
+        training_input = open(inpath_list+'/training_'+str(target)+'.pkl', 'rb')
+        test_input = open(inpath_list+'/test_'+str(target)+'.pkl', 'rb')
         # to store the scored lists
         scores = defaultdict(list)
         # loop over repetitions
         for q in actives.keys():
-            print q
+            print( q)
             num_actives = len(actives[q])
             np_fps_act = ml_func.getNumpy(actives[q])
-            training_list = cPickle.load(training_input)
-            test_list = cPickle.load(test_input)
+            training_list = pickle.load(training_input)
+            test_list = pickle.load(test_input)
             test_list += [i for i in range(num_decoys) if i not in training_list[num_actives:]]
 
             # list with active/inactive info
@@ -226,6 +228,6 @@ if __name__=='__main__':
         else:
             outfile = gzip.open(outpath+'/list_'+str(target)+'.pkl.gz', 'wb+') # binary format
         for fp in ['rf_'+fp_build]:
-            cPickle.dump([fp, scores[fp]], outfile, 2)
+            pickle.dump([fp, scores[fp]], outfile, 2)
         outfile.close()
-        print "scoring done and scored lists written"
+        print( "scoring done and scored lists written")

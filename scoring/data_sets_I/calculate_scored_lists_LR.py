@@ -9,8 +9,8 @@
 # optional:
 # -o [] : relative output path (default: pwd)
 # -a : append to the output file (default: overwrite)
-# -s [] : similarity metric (default: Dice, 
-#         other options: Tanimoto, Cosine, Russel, Kulczynski, 
+# -s [] : similarity metric (default: Dice,
+#         other options: Tanimoto, Cosine, Russel, Kulczynski,
 #         McConnaughey, Manhattan, RogotGoldberg)
 # -r [] : file containing the logistic regression info
 #          default parameters: penalty='l2', dual=0 (false), C=1.0,
@@ -24,19 +24,19 @@
 #
 #  Copyright (c) 2013, Novartis Institutes for BioMedical Research Inc.
 #  All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
-# met: 
+# met:
 #
-#     * Redistributions of source code must retain the above copyright 
+#     * Redistributions of source code must retain the above copyright
 #       notice, this list of conditions and the following disclaimer.
 #     * Redistributions in binary form must reproduce the above
-#       copyright notice, this list of conditions and the following 
-#       disclaimer in the documentation and/or other materials provided 
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
 #       with the distribution.
-#     * Neither the name of Novartis Institutes for BioMedical Research Inc. 
-#       nor the names of its contributors may be used to endorse or promote 
+#     * Neither the name of Novartis Institutes for BioMedical Research Inc.
+#       nor the names of its contributors may be used to endorse or promote
 #       products derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -53,9 +53,9 @@
 #
 
 from rdkit import Chem, DataStructs
-import cPickle, gzip, sys, os, os.path, numpy
+import pickle, gzip, sys, os, os.path, numpy
 from collections import defaultdict
-from optparse import OptionParser 
+from optparse import OptionParser
 from sklearn.linear_model import LogisticRegression
 
 # import configuration file with global variables
@@ -105,7 +105,7 @@ if __name__=='__main__':
     # read in command line options
     (options, args) = parser.parse_args()
     # required arguments
-    if options.num and options.fp: 
+    if options.num and options.fp:
         num_query_mols = options.num
         fp_build = options.fp
     else:
@@ -137,15 +137,16 @@ if __name__=='__main__':
 
     # loop over data-set sources
     for dataset in conf.set_data.keys():
-        print dataset
+        print( dataset)
         # loop over targets
         for target in conf.set_data[dataset]['ids']:
-            print target
+            print( target)
 
             # read in actives and calculate fps
             actives = []
             for line in gzip.open(inpath_cmp+dataset+'/cmp_list_'+dataset+'_'+str(target)+'_actives.dat.gz', 'r'):
-                if line[0] != '#': 
+                line=line.decode('UTF-8')
+                if line[0] != '#':
                     # structure of line: [external ID, internal ID, SMILES]]
                     line = line.rstrip().split()
                     fp_dict = scor.getFP(fp_build, line[2])
@@ -161,7 +162,8 @@ if __name__=='__main__':
                 if firstchembl:
                     decoys = []
                     for line in gzip.open(inpath_cmp+dataset+'/cmp_list_'+dataset+'_zinc_decoys.dat.gz', 'r'):
-                        if line[0] != '#': 
+                        line=line.decode('UTF-8')
+                        if line[0] != '#':
                             # structure of line: [external ID, internal ID, SMILES]]
                             line = line.rstrip().split()
                             fp_dict = scor.getFP(fp_build, line[2])
@@ -173,7 +175,8 @@ if __name__=='__main__':
             else:
                 decoys = []
                 for line in gzip.open(inpath_cmp+dataset+'/cmp_list_'+dataset+'_'+str(target)+'_decoys.dat.gz', 'r'):
-                    if line[0] != '#': 
+                    line=line.decode('UTF-8')
+                    if line[0] != '#':
                         # structure of line: [external ID, internal ID, SMILES]]
                         line = line.rstrip().split()
                         fp_dict = scor.getFP(fp_build, line[2])
@@ -182,17 +185,17 @@ if __name__=='__main__':
                 # convert fps to numpy arrays
                 np_fps_dcy = ml_func.getNumpy(decoys)
             num_decoys = len(decoys)
-            print "molecules read in and fingerprints calculated"
+            print( "molecules read in and fingerprints calculated")
 
             # open training lists
-            training_input = open(inpath_list+dataset+'/training_'+dataset+'_'+str(target)+'_'+str(num_query_mols)+'.pkl', 'r')
+            training_input = open(inpath_list+dataset+'/training_'+dataset+'_'+str(target)+'_'+str(num_query_mols)+'.pkl', 'rb')
             # to store the scored lists
             scores = defaultdict(list)
 
             # loop over repetitions
             for q in range(conf.num_reps):
-                print q
-                training_list = cPickle.load(training_input)
+                print( q)
+                training_list = pickle.load(training_input)
                 test_list = [i for i in range(num_actives) if i not in training_list[:num_query_mols]]
                 test_list += [i for i in range(num_decoys) if i not in training_list[num_query_mols:]]
 
@@ -223,6 +226,6 @@ if __name__=='__main__':
             else:
                 outfile = gzip.open(outpath+'/list_'+dataset+'_'+str(target)+'.pkl.gz', 'wb+') # binary format
             for fp in ['lr_'+fp_build]:
-                cPickle.dump([fp, scores[fp]], outfile, 2)
+                pickle.dump([fp, scores[fp]], outfile, 2)
             outfile.close()
-            print "scoring done and scored lists written"
+            print( "scoring done and scored lists written")

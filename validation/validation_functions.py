@@ -91,28 +91,28 @@ def readFPs(filepath):
 
 def printInputParam(method_dict, inpath):
     '''Prints the input parameters'''
-    print "-------------------------------"
-    print "PARAMETERS USED"
-    print "Validation methods: "
+    print( "-------------------------------")
+    print( "PARAMETERS USED")
+    print( "Validation methods: ")
     for m in method_dict.keys():
         if isinstance(method_dict[m], ParamEvalMethod):
-            print m, "- parameters:", method_dict[m].params
+            print( m, "- parameters:", method_dict[m].params)
         else:
-            print m
-    print ""
-    print "Input paths:"
+            print( m)
+    print( "")
+    print( "Input paths:")
     for inp in inpath:
-        print inp
-    print "-------------------------------"
+        print( inp)
+    print( "-------------------------------")
 
 def printFPs(fps):
     '''Prints a list of fingerprints'''
-    print "-------------------------------"
-    print "FINGERPRINTS CONSIDERED"
+    print( "-------------------------------")
+    print( "FINGERPRINTS CONSIDERED")
     for fp in fps:
-        print fp,
-    print ""
-    print "-------------------------------"
+        print( "   ",fp)
+    print( "")
+    print( "-------------------------------")
 
 def getName(fp, fp_names):
     '''Determines the new name of a fingerprint in case
@@ -157,12 +157,12 @@ class ParamEvalMethod(EvalMethod):
         for p in self.params:
             self.names.append(name + str(int(factor*p)))
     def addNames(self, results):
-        for n in self.names: 
+        for n in self.names:
             results[n] = defaultdict(list)
     def runMethod(self, results, scores, query, index):
         tmp_list = [[] for i in range(len(self.names))]
         # loop over fingerprints
-        for k in scores.keys(): 
+        for k in scores.keys():
             tmp = self.calculate(scores[k][query], index)
             # loop over parameters
             for i in range(len(self.names)):
@@ -193,4 +193,3 @@ class RIEMethod(ParamEvalMethod):
         for p in self.params:
             tmp.append(Scoring.CalcRIE(score,index,p))
         return tmp
-

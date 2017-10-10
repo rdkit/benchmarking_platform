@@ -45,7 +45,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import gzip, cPickle, math, sys, os, os.path
+import gzip, pickle, math, sys, os, os.path
 import numpy as np
 from scipy import special, stats
 from collections import defaultdict
@@ -92,7 +92,7 @@ if __name__=='__main__':
 
     # loop over dataset sources
     for dataset in conf.set_data.keys():
-        print dataset
+        print( dataset)
         # output directories and input directory
         outdir = outpath+'/'+dataset
         if not os.path.exists(outdir): os.makedirs(outdir)
@@ -102,12 +102,12 @@ if __name__=='__main__':
 
         # loop over targets
         for target in conf.set_data[dataset]['ids']:
-            print target
+            print( target)
 
             # load results
-            validation = cPickle.load(gzip.open(inpath+'/validation_'+str(target)+'.pkl.gz', 'r'))
-            methodkeys = validation.keys()
-            fpkeys = validation[methodkeys[0]].keys()
+            validation = pickle.load(gzip.open(inpath+'/validation_'+str(target)+'.pkl.gz', 'rb'))
+            methodkeys = list(validation.keys())
+            fpkeys = list(validation[methodkeys[0]].keys())
 
             # if ranks is not yet set: prepare it
             if len(ranks) == 0:
