@@ -4,39 +4,35 @@
 #
 # INPUT
 # required:
-# -f [] : fingerprint to build the random forest with
+# -f [] : fingerprint to build the Naive Bayes with
 # optional:
 # -o [] : relative output path (default: pwd)
 # -a : append to the output file (default: overwrite)
-# -s [] : similarity metric (default: Dice,
-#         other options: Tanimoto, Cosine, Russel, Kulczynski,
+# -s [] : similarity metric (default: Dice, 
+#         other options: Tanimoto, Cosine, Russel, Kulczynski, 
 #         McConnaughey, Manhattan, RogotGoldberg)
-# -r [] : file containing the random forest info
-#          default parameters: criterion=gini, max_depth=10,
-#          max_features=auto (=sqrt), num_estimators=100,
-#          min_samples_split=2, min_samples_leaf=1, n_jobs=1
+# -r [] : file containing the Naive Bayes info
+#          default parameters: alpha=1.0, binarize=None,
+#          fit_prior=1 (True)
 # --help : prints usage
 #
 # OUTPUT: for each target in each data set
-#         a file with a list (1 element) of RF prediction
-#         per RF prediction: [name, list of 50 scored lists]
+#         a file with a list (1 element) of NB prediction
+#         per NB prediction: [name, list of 50 scored lists]
 #
-#  Copyright (c) 2013, Novartis Institutes for BioMedical Research Inc.
+#  Copyright (c) 2022, Greg Landrum
 #  All rights reserved.
-#
+# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
-# met:
+# met: 
 #
-#     * Redistributions of source code must retain the above copyright
+#     * Redistributions of source code must retain the above copyright 
 #       notice, this list of conditions and the following disclaimer.
 #     * Redistributions in binary form must reproduce the above
-#       copyright notice, this list of conditions and the following
-#       disclaimer in the documentation and/or other materials provided
+#       copyright notice, this list of conditions and the following 
+#       disclaimer in the documentation and/or other materials provided 
 #       with the distribution.
-#     * Neither the name of Novartis Institutes for BioMedical Research Inc.
-#       nor the names of its contributors may be used to endorse or promote
-#       products derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -54,10 +50,8 @@
 from rdkit import Chem, DataStructs
 import pickle, gzip, sys, os, os.path, numpy
 from collections import defaultdict
-from optparse import OptionParser
-from sklearn.ensemble import RandomForestClassifier
-from rdkit.ML.Data import DataUtils
-from multiprocessing import Pool
+from optparse import OptionParser 
+from bayes.LaplacianNB import LaplacianNB
 
 # import configuration file with global variables
 sys.path.insert(0, os.getcwd()+'/../../')
@@ -82,22 +76,16 @@ firstchembl = True
 
 # dictionary for readMLFile()
 read_dict = {}
-read_dict['criterion'] = lambda x: x
-read_dict['max_depth'] = lambda x: int(x)
-read_dict['num_estimators'] = lambda x: int(x)
-read_dict['min_samples_split'] = lambda x: int(x)
-read_dict['min_samples_leaf'] = lambda x: int(x)
-read_dict['n_jobs'] = lambda x: int(x)
-
-# forest._parallel_build_trees = ml_func._balanced_parallel_build_trees
+read_dict['alpha'] = lambda x: float(x)
+read_dict['fit_prior'] = lambda x: bool(x)
 
 # prepare command-line option parser
 usage = "usage: %prog [options] arg"
 parser = OptionParser(usage)
-parser.add_option("-f", "--fingerprint", dest="fp", help="fingerprint to train random forest with")
+parser.add_option("-f", "--fingerprint", dest="fp", help="fingerprint to train Naive Bayes with")
 parser.add_option("-o", "--outpath", dest="outpath", metavar="PATH", help="relative output PATH (default: pwd)")
 parser.add_option("-s", "--similarity", dest="simil", type="string", metavar="NAME", help="NAME of similarity metric to use (default: Dice, other options are: Tanimoto, Cosine, Russel, Kulczynski, McConnaughey, Manhattan, RogotGoldberg")
-parser.add_option("-m", "--ml", dest="ml", metavar="FILE", help="file containing the random forest info (default parameters: criterion=gini, max_depth=10, num_estimators=100, min_samples_split=2, min_samples_leaf=1, n_jobs=1)")
+parser.add_option("-m", "--ml", dest="ml", metavar="FILE", help="file containing the  Naive Bayes info (default parameters: alpha=1.0, binarize=None, fit_prior=1 (True))")
 parser.add_option("-a", "--append", dest="do_append", action="store_true", help="append to the output file (default: False)")
 
 ############# MAIN PART ########################
@@ -106,7 +94,7 @@ if __name__=='__main__':
     # read in command line options
     (options, args) = parser.parse_args()
     # required arguments
-    if options.fp:
+    if options.fp: 
         fp_build = options.fp
     else:
         raise RuntimeError('one or more of the required options was not given!')
@@ -127,16 +115,16 @@ if __name__=='__main__':
     scor.checkSimil(simil_metric)
 
     # default machine-learning method variables
-    ml_dict = dict(criterion='gini', n_jobs=4, max_depth=10, min_samples_split=2, min_samples_leaf=1, num_estimators=100)
+    ml_dict = dict(alpha=1.0, fit_prior=True)
     if options.ml:
         ml_dict = ml_func.readMLFile(ml_dict, read_dict, path+options.ml)
 
     # initialize machine-learning method
-    ml = RandomForestClassifier(criterion=ml_dict['criterion'], min_samples_split=ml_dict['min_samples_split'], max_depth=ml_dict['max_depth'], min_samples_leaf=ml_dict['min_samples_leaf'], n_estimators=ml_dict['num_estimators'], n_jobs=ml_dict['n_jobs'])
+    ml = LaplacianNB(alpha=ml_dict['alpha'], fit_prior=ml_dict['fit_prior'])
 
     # loop over targets
     for target in conf.set_data:
-        print( target)
+        print(target)
 
         # read in training actives and calculate fps
         actives = pickle.load(open(inpath_cmp+'ChEMBL_II/Target_no_'+str(target)+'.pkl', 'rb'))
@@ -149,7 +137,7 @@ if __name__=='__main__':
         div_actives = []
         for line in gzip.open(inpath_cmp+'ChEMBL/cmp_list_ChEMBL_'+str(target)+'_actives.dat.gz', 'r'):
             line=line.decode('UTF-8')
-            if line[0] != '#':
+            if line[0] != '#': 
                 # structure of line: [external ID, internal ID, SMILES]]
                 line = line.rstrip().split()
                 fp_dict = scor.getFP(fp_build, line[2])
@@ -157,24 +145,24 @@ if __name__=='__main__':
                 div_actives.append([line[1], fp_dict])
         num_test_actives = conf.num_div_act - 1
         # convert fps to numpy arrays
-        np_fps_div_act = ml_func.getNumpy(div_actives)
+        np_fps_div_act = ml_func.getNumpy(div_actives,dtyp=int)
 
         # read in decoys and calculate fps
         if firstchembl:
             decoys = []
             for line in gzip.open(inpath_cmp+'ChEMBL/cmp_list_ChEMBL_zinc_decoys.dat.gz', 'r'):
                 line=line.decode('UTF-8')
-                if line[0] != '#':
+                if line[0] != '#': 
                     # structure of line: [external ID, internal ID, SMILES]]
                     line = line.rstrip().split()
                     fp_dict = scor.getFP(fp_build, line[2])
                     # store: [internal ID, dict with fps]
                     decoys.append([line[1], fp_dict])
             # convert fps to numpy arrays
-            np_fps_dcy = ml_func.getNumpy(decoys)
+            np_fps_dcy = ml_func.getNumpy(decoys,dtyp=int)
             firstchembl = False
             num_decoys = len(decoys)
-        print( "molecules read in and fingerprints calculated")
+        print("molecules read in and fingerprints calculated")
 
         # open training and test lists
         training_input = open(inpath_list+'/training_'+str(target)+'.pkl', 'rb')
@@ -183,9 +171,9 @@ if __name__=='__main__':
         scores = defaultdict(list)
         # loop over repetitions
         for q in actives.keys():
-            print( q)
+            print(q)
             num_actives = len(actives[q])
-            np_fps_act = ml_func.getNumpy(actives[q])
+            np_fps_act = ml_func.getNumpy(actives[q],dtyp=int)
             training_list = pickle.load(training_input)
             test_list = pickle.load(test_input)
             test_list += [i for i in range(num_decoys) if i not in training_list[num_actives:]]
@@ -193,39 +181,33 @@ if __name__=='__main__':
             # list with active/inactive info
             ys_fit = [1]*num_actives + [0]*(len(training_list)-num_actives)
             # training fps
-            train_fps = [actives[q][i][1] for i in range(num_actives)]
-            np_train_fps = np_fps_act + [np_fps_dcy[i] for i in training_list[num_actives:]]
-            # fit random forest
-            ml.fit(np_train_fps, ys_fit)
+            train_fps = np_fps_act + [np_fps_dcy[i] for i in training_list[num_actives:]]
+            # lmnb wants sets of on-bits
+            train_fps = [set([i for i,x in enumerate(fp) if x]) for fp in train_fps]
+            # fit Naive Bayes
+            ml.fit(train_fps, ys_fit)
 
             # test fps and molecule info
-            test_fps = [div_actives[i][1] for i in test_list[:num_test_actives]]
-            test_fps += [decoys[i][1] for i in test_list[num_test_actives:]]
-            np_test_fps = [np_fps_div_act[i] for i in test_list[:num_test_actives]]
-            np_test_fps += [np_fps_dcy[i] for i in test_list[num_test_actives:]]
+            test_fps = [np_fps_div_act[i] for i in test_list[:num_test_actives]]
+            test_fps += [np_fps_dcy[i] for i in test_list[num_test_actives:]]
             test_mols = [[div_actives[i][0], 1] for i in test_list[:num_test_actives]]
             test_mols += [[decoys[i][0], 0] for i in test_list[num_test_actives:]]
 
-            # calculate similarity with standard fp
-            std_simil = []
-            for fp in test_fps:
-                tmp_simil = scor.getBulkSimilarity(fp, train_fps, simil_metric)
-                tmp_simil.sort(reverse=True)
-                std_simil.append(tmp_simil[0])
-
-            # rank based on probability (and second based on similarity)
-            single_score = ml.predict_proba(np_test_fps)
-            # store: [probability, similarity, internal ID, active/inactive]
-            single_score = [[m[1], s, t[0], t[1]] for m,s,t in zip(single_score,std_simil,test_mols)]
+            test_fps = [set([i for i,x in enumerate(fp) if x]) for fp in test_fps]
+            # rank based on probability
+            single_score = ml.predict_proba(test_fps)
+            # store: [probability, internal ID, active/inactive]
+            single_score = [[s[1], m[0], m[1]] for s,m in zip(single_score, test_mols)]
             single_score.sort(reverse=True)
-            scores['rf_'+fp_build].append(single_score)
+            scores['lmnb_'+fp_build].append(single_score)
 
         # write scores to file
         if do_append:
             outfile = gzip.open(outpath+'/list_'+str(target)+'.pkl.gz', 'ab+') # binary format
         else:
             outfile = gzip.open(outpath+'/list_'+str(target)+'.pkl.gz', 'wb+') # binary format
-        for fp in ['rf_'+fp_build]:
+        for fp in ['lmnb_'+fp_build]:
             pickle.dump([fp, scores[fp]], outfile, 2)
         outfile.close()
-        print( "scoring done and scored lists written")
+        print("scoring done and scored lists written")
+        #break

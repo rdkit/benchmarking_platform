@@ -21,7 +21,7 @@
 #         a file with a list (1 element) of RF prediction
 #         per RF prediction: [name, list of 50 scored lists]
 #
-#  Copyright (c) 2013, Novartis Institutes for BioMedical Research Inc.
+#  Copyright (c) 2022, Greg Landrum
 #  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,6 @@
 #       copyright notice, this list of conditions and the following
 #       disclaimer in the documentation and/or other materials provided
 #       with the distribution.
-#     * Neither the name of Novartis Institutes for BioMedical Research Inc.
-#       nor the names of its contributors may be used to endorse or promote
-#       products derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -55,7 +52,7 @@ from rdkit import Chem, DataStructs
 import pickle, gzip, sys, os, os.path, numpy
 from collections import defaultdict
 from optparse import OptionParser
-from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 from rdkit.ML.Data import DataUtils
 from multiprocessing import Pool
 
@@ -82,11 +79,8 @@ firstchembl = True
 
 # dictionary for readMLFile()
 read_dict = {}
-read_dict['criterion'] = lambda x: x
 read_dict['max_depth'] = lambda x: int(x)
 read_dict['num_estimators'] = lambda x: int(x)
-read_dict['min_samples_split'] = lambda x: int(x)
-read_dict['min_samples_leaf'] = lambda x: int(x)
 read_dict['n_jobs'] = lambda x: int(x)
 
 # forest._parallel_build_trees = ml_func._balanced_parallel_build_trees
@@ -127,12 +121,12 @@ if __name__=='__main__':
     scor.checkSimil(simil_metric)
 
     # default machine-learning method variables
-    ml_dict = dict(criterion='gini', n_jobs=4, max_depth=10, min_samples_split=2, min_samples_leaf=1, num_estimators=100)
+    ml_dict = dict( n_jobs=4, max_depth=3, num_estimators=300)
     if options.ml:
         ml_dict = ml_func.readMLFile(ml_dict, read_dict, path+options.ml)
 
     # initialize machine-learning method
-    ml = RandomForestClassifier(criterion=ml_dict['criterion'], min_samples_split=ml_dict['min_samples_split'], max_depth=ml_dict['max_depth'], min_samples_leaf=ml_dict['min_samples_leaf'], n_estimators=ml_dict['num_estimators'], n_jobs=ml_dict['n_jobs'])
+    ml = XGBClassifier(max_depth=ml_dict['max_depth'], n_estimators=ml_dict['num_estimators'], n_jobs=ml_dict['n_jobs'])
 
     # loop over targets
     for target in conf.set_data:
@@ -218,14 +212,14 @@ if __name__=='__main__':
             # store: [probability, similarity, internal ID, active/inactive]
             single_score = [[m[1], s, t[0], t[1]] for m,s,t in zip(single_score,std_simil,test_mols)]
             single_score.sort(reverse=True)
-            scores['rf_'+fp_build].append(single_score)
+            scores['xgb_'+fp_build].append(single_score)
 
         # write scores to file
         if do_append:
             outfile = gzip.open(outpath+'/list_'+str(target)+'.pkl.gz', 'ab+') # binary format
         else:
             outfile = gzip.open(outpath+'/list_'+str(target)+'.pkl.gz', 'wb+') # binary format
-        for fp in ['rf_'+fp_build]:
+        for fp in ['xgb_'+fp_build]:
             pickle.dump([fp, scores[fp]], outfile, 2)
         outfile.close()
         print( "scoring done and scored lists written")
