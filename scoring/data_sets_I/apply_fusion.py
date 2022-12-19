@@ -2,7 +2,7 @@
 # $Id$
 #
 # loads ranked lists from different
-# models and/or fingerprints and 
+# models and/or fingerprints and
 # apply rank-based fusion
 #
 # INPUT
@@ -22,19 +22,19 @@
 #
 #  Copyright (c) 2013, Novartis Institutes for BioMedical Research Inc.
 #  All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
-# met: 
+# met:
 #
-#     * Redistributions of source code must retain the above copyright 
+#     * Redistributions of source code must retain the above copyright
 #       notice, this list of conditions and the following disclaimer.
 #     * Redistributions in binary form must reproduce the above
-#       copyright notice, this list of conditions and the following 
-#       disclaimer in the documentation and/or other materials provided 
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
 #       with the distribution.
-#     * Neither the name of Novartis Institutes for BioMedical Research Inc. 
-#       nor the names of its contributors may be used to endorse or promote 
+#     * Neither the name of Novartis Institutes for BioMedical Research Inc.
+#       nor the names of its contributors may be used to endorse or promote
 #       products derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -50,7 +50,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import gzip, cPickle, math, sys, os, os.path
+import gzip, pickle, math, sys, os, os.path
 from collections import defaultdict
 from optparse import OptionParser
 
@@ -101,7 +101,7 @@ if __name__=='__main__':
     if options.rm_file:
         remove_fps = scor.readFPs(path+options.rm_file)
     outpath = path
-    if options.outpath: 
+    if options.outpath:
         outpath = path+options.outpath
         scor.checkPath(outpath, 'output')
     do_append = False
@@ -112,19 +112,19 @@ if __name__=='__main__':
 
     # loop over data-set sources
     for dataset in conf.set_data.keys():
-        print dataset
+        print( dataset)
 
         # loop over targets
         for target in conf.set_data[dataset]['ids']:
-            print target
+            print( target)
 
             # load scored lists
             scores = {}
             for inp in inpath: # loop over input paths
-                myfile = gzip.open(inp+'/list_'+dataset+'_'+str(target)+'_.pkl.gz', 'r')
+                myfile = gzip.open(inp+'/list_'+dataset+'_'+str(target)+'_.pkl.gz', 'rb')
                 while 1:
                     try:
-                        tmp = cPickle.load(myfile)
+                        tmp = pickle.load(myfile)
                     except (EOFError):
                         break
                     else:
@@ -133,9 +133,9 @@ if __name__=='__main__':
                             tmp[0] = scor.getName(tmp[0], scores.keys())
                             # input line: [fp_name, list of scored lists]
                             scores[tmp[0]] = tmp[1]
-            print "scored lists read in"
+            print( "scored lists read in")
             if len(scores.keys()) < 2:
-                print "number of fingerprints/models < 2, nothing to be done"
+                print( "number of fingerprints/models < 2, nothing to be done")
                 break
             if printfp:
                 # determine the name of the fusion
@@ -176,6 +176,6 @@ if __name__=='__main__':
                 outfile = gzip.open(outpath+'/list_'+dataset+'_'+str(target)+'_'+'.pkl.gz', 'ab+') # binary format
             else:
                 outfile = gzip.open(outpath+'/list_'+dataset+'_'+str(target)+'_'+'.pkl.gz', 'wb+') # binary format
-            cPickle.dump([fpname, new_scores], outfile, 2)
+            pickle.dump([fpname, new_scores], outfile, 2)
             outfile.close()
-        print "fusion ranking done and ranked list written"
+        print( "fusion ranking done and ranked list written")

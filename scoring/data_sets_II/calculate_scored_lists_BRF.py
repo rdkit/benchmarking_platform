@@ -4,7 +4,7 @@
 #
 # INPUT
 # required:
-# -f [] : fingerprint to build the random forest with
+# -f [] : fingerprint to build the balanced random forest with
 # optional:
 # -o [] : relative output path (default: pwd)
 # -a : append to the output file (default: overwrite)
@@ -55,7 +55,7 @@ from rdkit import Chem, DataStructs
 import pickle, gzip, sys, os, os.path, numpy
 from collections import defaultdict
 from optparse import OptionParser
-from sklearn.ensemble import RandomForestClassifier
+from imblearn.ensemble import BalancedRandomForestClassifier
 from rdkit.ML.Data import DataUtils
 from multiprocessing import Pool
 
@@ -132,7 +132,7 @@ if __name__=='__main__':
         ml_dict = ml_func.readMLFile(ml_dict, read_dict, path+options.ml)
 
     # initialize machine-learning method
-    ml = RandomForestClassifier(criterion=ml_dict['criterion'], min_samples_split=ml_dict['min_samples_split'], max_depth=ml_dict['max_depth'], min_samples_leaf=ml_dict['min_samples_leaf'], n_estimators=ml_dict['num_estimators'], n_jobs=ml_dict['n_jobs'])
+    ml = BalancedRandomForestClassifier(criterion=ml_dict['criterion'], min_samples_split=ml_dict['min_samples_split'], max_depth=ml_dict['max_depth'], min_samples_leaf=ml_dict['min_samples_leaf'], n_estimators=ml_dict['num_estimators'], n_jobs=ml_dict['n_jobs'])
 
     # loop over targets
     for target in conf.set_data:
@@ -218,14 +218,14 @@ if __name__=='__main__':
             # store: [probability, similarity, internal ID, active/inactive]
             single_score = [[m[1], s, t[0], t[1]] for m,s,t in zip(single_score,std_simil,test_mols)]
             single_score.sort(reverse=True)
-            scores['rf_'+fp_build].append(single_score)
+            scores['brf_'+fp_build].append(single_score)
 
         # write scores to file
         if do_append:
             outfile = gzip.open(outpath+'/list_'+str(target)+'.pkl.gz', 'ab+') # binary format
         else:
             outfile = gzip.open(outpath+'/list_'+str(target)+'.pkl.gz', 'wb+') # binary format
-        for fp in ['rf_'+fp_build]:
+        for fp in ['brf_'+fp_build]:
             pickle.dump([fp, scores[fp]], outfile, 2)
         outfile.close()
         print( "scoring done and scored lists written")
